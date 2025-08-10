@@ -1,4 +1,3 @@
-import os
 import logging
 import requests
 import pandas as pd
@@ -6,27 +5,9 @@ import time
 from google.cloud import bigquery
 from sqlalchemy import create_engine
 
+import config
 
-discord_webhook_url = None  # your_discord_webhook_url
-
-CRONTAB = os.getenv("MY_PIPELINE_RUN_MODE", "manual").strip().lower() == "cron"
-
-# Google Cloud credentials path
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-creds_dir = "/app/credentials" if CRONTAB else os.path.join(BASE_DIR, "credentials")
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = os.path.join(creds_dir, "big_query_credentials.json")
-
-# Database config
-PG_CFG = {
-    "host": os.getenv("POSTGRES_HOST", "db" if CRONTAB else "localhost"),
-    "port": int(os.getenv("POSTGRES_PORT", "5432")),
-    "dbname": os.getenv("POSTGRES_DB", "ranking_pokemon"),
-    "user": os.getenv("POSTGRES_USER", "postgres"),
-    "password": os.getenv("POSTGRES_PASSWORD", "p"),
-}
-PG_SCHEMA = "public"
-DB_URL = f"postgresql+psycopg2://{PG_CFG['user']}:{PG_CFG['password']}@{PG_CFG['host']}:{PG_CFG['port']}/{PG_CFG['dbname']}"
-engine = create_engine(DB_URL)
+engine = create_engine(config.DB_URL)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -36,7 +17,9 @@ logging.basicConfig(
 
 def get_big_query_data():
     """
-    Get Pokemon data from BigQuery
+    Get Pokemon data from BigQuery.
+
+    @returns pd.DataFrame: DataFrame with Pokemon data from BigQuery.
     """
     try:
         client = bigquery.Client()
@@ -56,8 +39,10 @@ def get_big_query_data():
 
 def get_api_data(big_query_data):
     """
-    Get Pokemon data from PokeAPI
-    @param big_query_data: DataFrame containing data from BigQuery
+    Get Pokemon data from PokeAPI.
+
+    @param big_query_data pd.DataFrame: DataFrame containing data from BigQuery.
+    @returns pd.DataFrame: DataFrame with Pokemon data from PokeAPI.
     """
     pokemons_info = []
     total_pokemon = len(big_query_data)
@@ -116,7 +101,11 @@ def get_api_data(big_query_data):
 
 def merge_results(big_query_data, api_data):
     """
-    Merge BigQuery and API data
+    Merge BigQuery and API data.
+
+    @param big_query_data pd.DataFrame: DataFrame from BigQuery.
+    @param api_data pd.DataFrame: DataFrame from PokeAPI.
+    @returns pd.DataFrame: Merged DataFrame.
     """
     try:
         merged = pd.merge(big_query_data, api_data, on="numero", suffixes=("_bq", "_api"))
@@ -130,7 +119,12 @@ def merge_results(big_query_data, api_data):
 
 def save_to_postgres(dataframe, table_name, if_exists="replace"):
     """
-    Save DataFrame to PostgreSQL
+    Save DataFrame to PostgreSQL.
+
+    @param dataframe pd.DataFrame: DataFrame to be saved.
+    @param table_name str: Name of the table in PostgreSQL.
+    @param if_exists str: Behavior if the table exists (default: "replace").
+    @returns None
     """
     try:
         dataframe.to_sql(table_name, engine, if_exists=if_exists, index=False)
@@ -141,12 +135,19 @@ def save_to_postgres(dataframe, table_name, if_exists="replace"):
         raise
 
 
-if __name__ == "__main__":
-    if CRONTAB and discord_webhook_url:
-            # Send a message to Discord
-        requests.post(discord_webhook_url, json={"content": "Starting Cron Pokemon data pipeline..."})
+def send_discord_message(content):
+    """
+    Send a message to a Discord webhook.
 
-    logging.info(f"Starting {'Cron' if CRONTAB else ''} Pokemon data pipeline...")
+    @param content str: Message content to send to Discord.
+    """
+    if config.CRONTAB and config.DISCORD_WEBHOOK_URL:
+        requests.post(config.DISCORD_WEBHOOK_URL, json={"content": content})
+
+
+if __name__ == "__main__":
+    send_discord_message("Starting Cron Pokemon data pipeline...")
+    logging.info(f"Starting {'Cron' if config.CRONTAB else ''} Pokemon data pipeline...")
 
     try:
         # Fetch data from BigQuery
@@ -163,15 +164,10 @@ if __name__ == "__main__":
             save_to_postgres(api_data, "ranking_pokemon_api", if_exists="append")
             merged_data = merge_results(big_query_data, api_data)
             save_to_postgres(merged_data, "ranking_pokemon_merged")
-        
-        if CRONTAB and discord_webhook_url:
-            # Send a message to Discord
-            requests.post(discord_webhook_url, json={"content": f"Cron Pokemon data pipeline completed successfully! {len(api_data)} added."})
 
-        logging.info(f"{'Cron' if CRONTAB else ''} Pokemon data pipeline completed successfully!")
+        send_discord_message(f"Cron Pokemon data pipeline completed successfully! {len(api_data)} added.")
+        logging.info(f"{'Cron' if config.CRONTAB else ''} Pokemon data pipeline completed successfully!")
 
     except Exception as e:
-        if CRONTAB and discord_webhook_url:
-            # Send a message to Discord
-            requests.post(discord_webhook_url, json={"content": f"Cron Pipeline failed with error: {str(e)}"})
-        logging.error(f"{'Cron' if CRONTAB else ''} Pipeline failed with error: {str(e)}")
+        send_discord_message(f"Cron Pipeline failed with error: {str(e)}")
+        logging.error(f"{'Cron' if config.CRONTAB else ''} Pipeline failed with error: {str(e)}")

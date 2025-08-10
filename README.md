@@ -12,15 +12,15 @@ Clone o projeto
 git clone https://github.com/pulszao/ranking_pokemon.git
 ```
 
-Adicione suas credenciais de acesso ao BigQuery no arquivo [big_query_credentials.json](/credentials/big_query_credentials.json)
+Adicione suas credenciais de acesso ao BigQuery no arquivo [credentials/big_query_credentials.json](/credentials/big_query_credentials.json)
 
 ### Configuração do Discord (Opcional)
 Para receber notificações sobre o status do pipeline:
 
 1. Configure um webhook no seu servidor Discord
-2. Edite o arquivo [pokemon_pipeline.py](/pokemon_pipeline.py) e substitua a URL do webhook:
-```python
-discord_webhook_url = "https://discord.com/api/webhooks/SEU_WEBHOOK_URL_AQUI"
+2. Edite o arquivo [config.py](/config.py) e substitua a URL do webhook:
+```
+DISCORD_WEBHOOK_URL = None  # TODO: Add your Discord webhook URL
 ```
 
 O pipeline enviará notificações automáticas quando:
@@ -31,42 +31,16 @@ O pipeline enviará notificações automáticas quando:
 ## Rodando projeto
 
 ### Rodando via docker
-Dentro da pasta do projeto execute o seguinte comando
+No diretório do projeto, execute o comando abaixo para criar e inicializar os containers Docker:
 ```
-docker-compose up --build
+docker-compose up --build -d
 ```
 Este comando ativa automaticamente a cron, que está programada para executar o script [pokemon_pipeline.py](/pokemon_pipeline.py) uma vez por dia as 02:00
 
 #### Executar o pipeline manualmente no container
 Para executar o pipeline imediatamente sem esperar o agendamento:
 ```
-docker exec -it ranking_pokemon-app-1 python /app/pokemon_pipeline.py
-```
-
-### Rodar localmente
-Criar uma maquina virtual de python
-```
-python -m venv venv
-```
-
-Ative a maquina virtual (Windows)
-```
-.\venv\Scripts\activate
-```
-
-Ative a maquina virtual (macos/Linus)
-```
-source /venv/bin/activate
-```
-
-Instale as dependências python
-```
-pip install -r requirements.txt
-```
-
-Execute o script
-```
-python pokemon_pipeline.py
+docker exec -it ranking_pokemon-cron-1 python /app/pokemon_pipeline.py
 ```
 
 ## Acessar o Banco de Dados
@@ -77,9 +51,9 @@ python pokemon_pipeline.py
 - Senha: admin
 
 ### Configurações de Conexão no pgAdmin:
-- Host: db (ou localhost se conectar de fora do Docker)
+- Host: db
 - Port: 5432
-- Database: pokemon_db
+- Database: ranking_pokemon
 - Username: postgres
 - Password: p
 

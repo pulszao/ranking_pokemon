@@ -24,6 +24,8 @@ services:
         condition: service_healthy
     volumes:
       - ./credentials:/app/credentials:ro
+      - ./pokemon_pipeline.py:/app/pokemon_pipeline.py:ro
+      - ./config.py:/app/config.py:ro
     environment:
       GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/big_query_credentials.json
       MY_PIPELINE_RUN_MODE: cron
