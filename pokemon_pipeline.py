@@ -7,7 +7,7 @@ from google.cloud import bigquery
 from sqlalchemy import create_engine
 
 
-discord_webhook_url = "https://discord.com/api/webhooks/your_discord_webhook_url"
+discord_webhook_url = None  # your_discord_webhook_url
 
 CRONTAB = os.getenv("MY_PIPELINE_RUN_MODE", "manual").strip().lower() == "cron"
 
