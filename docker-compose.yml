@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: p
+      POSTGRES_DB: ranking_pokemon
+      TZ: America/Sao_Paulo
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_local:/var/lib/postgresql/data
+      - ./initdb:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d ranking_pokemon"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  cron:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./credentials:/app/credentials:ro
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/big_query_credentials.json
+      MY_PIPELINE_RUN_MODE: cron
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: p
+      POSTGRES_DB: ranking_pokemon
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+      TZ: America/Sao_Paulo
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4:9
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      TZ: America/Sao_Paulo
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata_local:
