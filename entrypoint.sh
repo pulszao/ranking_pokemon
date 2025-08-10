@@ -18,12 +18,15 @@ EOF
 chmod +x /app/run_pipeline.sh
 
 # Cron job must include the USER field when placed in /etc/cron.d
-echo "*/1 * * * * root /app/run_pipeline.sh" > /etc/cron.d/python-cron
+# TEST: run every minute
+# echo "*/1 * * * * root /app/run_pipeline.sh" > /etc/cron.d/python-cron
+# 2 AM
+echo "0 2 * * * root /app/run_pipeline.sh" > /etc/cron.d/python-cron
 chmod 0644 /etc/cron.d/python-cron
 
 # Run cron in the foreground so the container stays up
 exec /usr/sbin/cron -f
 
-# Mantém o container ativo, monitorando o log do cron
+# Keeps the container running
 cron &
 tail -F /app/cron.log
