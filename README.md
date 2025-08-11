@@ -6,6 +6,7 @@ Este projeto extrai dados de Pokemons do BigQuery, complementa com dados da [Pok
 ### Pré Requisitos
 - [Python 3.8+](https://www.python.org/)
 - [Docker](https://docs.docker.com/desktop/install/windows-install/)
+- [WSL](https://learn.microsoft.com/en-us/windows/wsl/install)
 
 Clone o projeto
 ```
