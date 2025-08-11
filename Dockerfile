@@ -9,17 +9,17 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends cron tzdata gcc g++ libpq-dev ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /app
+WORKDIR /cron
 
-COPY requirements.txt /app/requirements.txt
+COPY requirements.txt /cron/requirements.txt
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r /app/requirements.txt
+    pip install --no-cache-dir -r /cron/requirements.txt
 
-COPY pokemon_pipeline.py /app/pokemon_pipeline.py
-COPY config.py /app/config.py
+COPY pokemon_pipeline.py /cron/pokemon_pipeline.py
+COPY config.py /cron/config.py
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh && sed -i 's/\r$//' /entrypoint.sh
 
-RUN touch /app/cron.log
+RUN touch /cron/cron.log
 
 ENTRYPOINT ["/entrypoint.sh"]

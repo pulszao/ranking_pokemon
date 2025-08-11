@@ -11,7 +11,7 @@ CRONTAB = os.getenv("MY_PIPELINE_RUN_MODE", "manual").strip().lower() == "cron"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Google Cloud credentials directory
-CREDS_DIR = "/app/credentials" if CRONTAB else os.path.join(BASE_DIR, "credentials")
+CREDS_DIR = "/cron/credentials" if CRONTAB else os.path.join(BASE_DIR, "credentials")
 GOOGLE_APPLICATION_CREDENTIALS = os.path.join(CREDS_DIR, "big_query_credentials.json")
 os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = GOOGLE_APPLICATION_CREDENTIALS
 

@@ -56,11 +56,10 @@ def get_api_data(big_query_data):
         except Exception as e:
             # Empty dataframe
             df_api = pd.DataFrame(columns=["numero"])
-
         
         for _, poke in big_query_data.iterrows():
             # Rate limiting, as maximum API request is 100/s
-            time.sleep(0.01)
+            time.sleep(config.POKEAPI_RATE_LIMIT_SEC)
 
             if not df_api.empty and poke['numero'] in df_api['numero'].values:
                 # logging.debug(f"Skipping Pokemon ID {poke['numero']} as it already exists in the API data.")

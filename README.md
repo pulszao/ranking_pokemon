@@ -40,7 +40,7 @@ Este comando ativa automaticamente a cron, que está programada para executar o 
 #### Executar o pipeline manualmente no container
 Para executar o pipeline imediatamente sem esperar o agendamento:
 ```
-docker exec -it ranking_pokemon-cron-1 python /app/pokemon_pipeline.py
+docker exec -it ranking_pokemon-cron-1 python /cron/pokemon_pipeline.py
 ```
 
 ## Acessar o Banco de Dados

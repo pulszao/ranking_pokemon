@@ -23,11 +23,11 @@ services:
       db:
         condition: service_healthy
     volumes:
-      - ./credentials:/app/credentials:ro
-      - ./pokemon_pipeline.py:/app/pokemon_pipeline.py:ro
-      - ./config.py:/app/config.py:ro
+      - ./credentials:/cron/credentials:ro
+      - ./pokemon_pipeline.py:/cron/pokemon_pipeline.py:ro
+      - ./config.py:/cron/config.py:ro
     environment:
-      GOOGLE_APPLICATION_CREDENTIALS: /app/credentials/big_query_credentials.json
+      GOOGLE_APPLICATION_CREDENTIALS: /cron/credentials/big_query_credentials.json
       MY_PIPELINE_RUN_MODE: cron
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: p
